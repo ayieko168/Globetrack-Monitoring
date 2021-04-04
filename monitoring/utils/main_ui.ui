@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>796</width>
+    <width>903</width>
     <height>649</height>
    </rect>
   </property>
@@ -442,7 +442,7 @@
                      </spacer>
                     </item>
                     <item>
-                     <widget class="QPushButton" name="save_button">
+                     <widget class="QPushButton" name="export_button">
                       <property name="minimumSize">
                        <size>
                         <width>92</width>
@@ -456,7 +456,7 @@
                        </size>
                       </property>
                       <property name="text">
-                       <string>SAVE</string>
+                       <string>EXPORT!</string>
                       </property>
                      </widget>
                     </item>
@@ -574,7 +574,7 @@
                      </spacer>
                     </item>
                     <item>
-                     <widget class="QPushButton" name="backward_button">
+                     <widget class="QPushButton" name="decrease_playback_speed_button">
                       <property name="minimumSize">
                        <size>
                         <width>30</width>
@@ -593,7 +593,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QPushButton" name="backward_button_2">
+                     <widget class="QPushButton" name="normalize_playback_speed_button">
                       <property name="minimumSize">
                        <size>
                         <width>30</width>
@@ -607,12 +607,12 @@
                        </size>
                       </property>
                       <property name="text">
-                       <string>||</string>
+                       <string>^</string>
                       </property>
                      </widget>
                     </item>
                     <item>
-                     <widget class="QPushButton" name="forward_button">
+                     <widget class="QPushButton" name="increase_playback_speed_button">
                       <property name="minimumSize">
                        <size>
                         <width>30</width>
@@ -627,6 +627,38 @@
                       </property>
                       <property name="text">
                        <string>-&gt;</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer_9">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeType">
+                       <enum>QSizePolicy::Fixed</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>5</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="play_back_speed_label">
+                      <property name="font">
+                       <font>
+                        <family>Liberation Mono</family>
+                        <pointsize>11</pointsize>
+                       </font>
+                      </property>
+                      <property name="text">
+                       <string>X1</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
                       </property>
                      </widget>
                     </item>
@@ -666,7 +698,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>796</width>
+     <width>903</width>
      <height>21</height>
     </rect>
    </property>
