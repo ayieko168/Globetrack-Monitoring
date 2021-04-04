@@ -27,7 +27,7 @@ HOST_PORT = 2151
 
 ## IN File
 FIRST_TIME_BOOT = True
-INITIAL_PAGE = 1
+INITIAL_PAGE = 0
 SLIDER_RANGE = 30
 PLAY_SPEED = 1
 DESCENDING = True
@@ -91,6 +91,9 @@ class MainApplication(QMainWindow):
         self.timer = QTimer(self)
         self.timer.setInterval(1000)
         self.timer.timeout.connect(self.updateUI)
+
+        ## Set timer shot for moving to next page
+        QTimer.singleShot(3000, lambda: self.ui.stackedWidget.setCurrentIndex(1))
 
     def ui_connections(self):
 
@@ -389,7 +392,6 @@ class MainApplication(QMainWindow):
 
         self.ui.statusbar.showMessage("All Files are downloaded!", 2000)
         print("All Files are downloaded!")
-
 
 
 class SplitWorker(QRunnable):
