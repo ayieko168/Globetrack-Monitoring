@@ -1,4 +1,3 @@
-
 import subprocess
 import datetime
 import concurrent.futures
@@ -8,13 +7,15 @@ import pprint, json
 from PyQt5.QtCore import QDir, Qt, QUrl
 
 
+STOP_MINUTE = "30"
+
 def capture_video(args_tup):
 
     video, audio, channel_name = args_tup
 
     print(f"[{channel_name}] Start recording process")
     ## Check if recording dirs are available
-    recording_path = f"C:/Users/royalstate/Videos/Tv_Recordings/{channel_name.upper()}"
+    recording_path = f"C:/Users/{os.getlogin()}/Videos/Tv_Recordings/{channel_name.upper()}"
     if not os.path.exists(recording_path):
         print(f"[{channel_name}]Recording directory not found for {channel_name}, creating one...")
         os.makedirs(recording_path)
@@ -27,7 +28,7 @@ def capture_video(args_tup):
         for line in process.stdout:
             if line.startswith('frame'):
                 _hr, _min, _sec = line.split('time=')[-1].split()[0].split(':')  # frame= 1570 fps= 30 q=29.0 size=    5376kB time=00:00:52.26 bitrate= 842.7kbits/s dup=304 drop=5 speed=1.01x
-                if _min == '01':
+                if _min == STOP_MINUTE:
                     print(f"[{channel_name}]terminating...")
                     process.terminate()
                     capture_video((video, audio, channel_name))
@@ -108,9 +109,7 @@ def get_audio_devices():
 
 
 
-channels_list = [("Logitech Webcam C925e", "Microphone (Logitech Webcam C925e)", "ktn"),
-                 ("AV TO USB2.0", "Microphone (USB2.0 MIC)", "ntv"),
-                 ("Iriun Webcam", "Microphone (Iriun Webcam)", "kBc")]
+
 
 
 
@@ -119,6 +118,10 @@ channels_list = [("Logitech Webcam C925e", "Microphone (Logitech Webcam C925e)",
 # get_audio_devices()
 # capture_video("Logitech Webcam C925e", "Microphone (Logitech Webcam C925e)", "ktn")
 
-with concurrent.futures.ThreadPoolExecutor(max_workers=25) as excecutor:
-    excecutor.map(capture_video, channels_list)
+# channels_list = [("Logitech Webcam C925e", "Microphone (Logitech Webcam C925e)", "ktn"),
+#                  ("AV TO USB2.0", "Microphone (USB2.0 MIC)", "ntv"),
+#                  ("Iriun Webcam", "Microphone (Iriun Webcam)", "kBc")]
+
+# with concurrent.futures.ThreadPoolExecutor(max_workers=25) as excecutor:
+#     excecutor.map(capture_video, channels_list)
 
