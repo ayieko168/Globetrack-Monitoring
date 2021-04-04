@@ -4,7 +4,6 @@ import concurrent.futures
 import os
 import cv2
 import pprint, json
-from PyQt5.QtCore import QDir, Qt, QUrl
 
 
 STOP_MINUTE = "30"
