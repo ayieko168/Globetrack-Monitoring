@@ -8,7 +8,7 @@ from utils import main_design_ui
 import os
 import datetime
 import json
-from fpdf import FPDF
+#from fpdf import FPDF
 from PIL import Image
 import re
 
@@ -221,7 +221,7 @@ class MainApplication(QMainWindow):
         files.sort(key=lambda f: int(re.sub('\D', '', f)))
 
         ## Start The PDF convertion
-        pdf = FPDF()
+        #pdf = FPDF()
         print(files)
         image_objs = []
         for image in files:
