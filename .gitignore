@@ -129,3 +129,4 @@ venv.bak/
 
 .idea/
 output/
+*exe
