@@ -11,6 +11,7 @@ import json
 #from fpdf import FPDF
 from PIL import Image
 import re
+import subprocess
 
 class MainApplication(QMainWindow):
 
@@ -22,6 +23,7 @@ class MainApplication(QMainWindow):
 
         ## Variables
         self.to_send_emails = []
+        self.threadpool = QThreadPool()
 
         ## Setup Functions
         self.ui_connections()
@@ -52,7 +54,7 @@ class MainApplication(QMainWindow):
         self.ui.move_mails_into_send_list_button.clicked.connect(self.move_mails_into_send_list)
         self.ui.move_mails_from_send_list_button.clicked.connect(self.move_mails_from_send_list)
         self.ui.clear_send_list_button.clicked.connect(self.clear_send_list)
-        self.ui.start_ops_button.clicked.connect(self.start_ops)
+        self.ui.start_ops_button.clicked.connect(self.start_op_caller)
 
 
     def logger_print(self, message: str, sender='APPLICATION'):
@@ -202,16 +204,28 @@ class MainApplication(QMainWindow):
         ## Message
         self.logger_print("Cleared all emails from queue")
 
-    def start_ops(self):
+    def start_op_caller(self):
+        
+        worker = Worker(self.start_ops)
+        # worker1.signals.message_signal.connect(self.backend_utils.show_messagebox)
+        worker.signals.log_data.connect(self.logger_print)
+        worker.signals.finished.connect(self.start_op_finished)
+        self.threadpool.start(worker)
+
+    def start_op_finished(self):
+        
+        print("Finished all signal ops.")
+
+    def start_ops(self, signals):
 
         ## Verify the two dirs are selected
         if (not self.ui.paper_dir_edit.text()) or (not self.ui.output_file_edit.text()):
-            self.logger_print("Select a Newspaper directory and an output file to proceed.")
+            signals.log_data.emit("Select a Newspaper directory and an output file to proceed.")
             return
 
         ## verify main emails list is not empty
         if not self.to_send_emails:
-            self.logger_print("No emails selected... Just saving the PDF...")
+            signals.log_data.emit("No emails selected... Just saving the PDF...")
 
         ## Parse directory for paper images
         selected_paper_dir = self.ui.paper_dir_edit.text()
@@ -221,21 +235,67 @@ class MainApplication(QMainWindow):
         files.sort(key=lambda f: int(re.sub('\D', '', f)))
 
         ## Start The PDF convertion
-        #pdf = FPDF()
         print(files)
         image_objs = []
         for image in files:
-            self.logger_print(f"Processing {image}")
+            signals.log_data.emit(f"Processing {image}")
             img = Image.open(image)
             img.convert("RGB")
             image_objs.append(img)
 
         image_objs[0].save(self.ui.output_file_edit.text(), "PDF", resolution=100.0, save_all=True, append_images=image_objs)
-        self.logger_print(f"Done creating pdf : {self.ui.output_file_edit.text()}")
+        signals.log_data.emit(f"Done creating pdf : {self.ui.output_file_edit.text()}")
+
+        ## Start the OCR process
+        command = f"python -m ocrmypdf"
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+
+        while True:
+            # Read The incoming Data
+            output = process.stdout.readline()
+            print(output.decode())
+
+            # Send Read data to GUI logging output
+            if output.decode() != '': 
+                signals.log_data.emit(f"Worker {process.pid} >> {output.decode()}")
+
+            # Break out of the loop if no more data is comming
+            if output.decode() == '' and process.poll() is not None:
+                signals.log_data.emit("Done converting ")
+                print("Breaking...")
+                break
+        
+        rc = process.poll()
+        if rc == 0:
+            signals.log_data.emit("Successfully made all the pdf files searchable.")
+        else:
+            signals.log_data.emit(f"Did not run the command successfully. RETURN CODE: {rc}")
+
+        ## Send finished signal
+        signals.finished.emit()
+
+class Worker(QRunnable):
+
+    def __init__(self, func, *args, **kwargs):
+
+        super(Worker, self).__init__()
+
+        self.func = func
+        self.args = args
+        self.kwargs = kwargs
+        self.signals = WorkerSignals()
+
+    @pyqtSlot()
+    def run(self):
+
+        self.func(self.signals)
 
 
-
-
+class WorkerSignals(QObject):
+    finished = pyqtSignal()
+    log_data = pyqtSignal(object)
+    message_signal = pyqtSignal(object)
+    ask_question_signal = pyqtSignal(object)
 
 
 
