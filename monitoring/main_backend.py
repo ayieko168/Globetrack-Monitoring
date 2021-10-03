@@ -30,6 +30,8 @@ FIRST_TIME_BOOT = True
 INITIAL_PAGE = 1
 SLIDER_RANGE = 30
 PLAY_SPEED = 1
+MAX_PLAY_SPEED = 2
+MIN_PLAY_SPEED = 0.2
 DESCENDING = True
 # SHOW_SPLASH = False
 
@@ -63,7 +65,6 @@ class MainApplication(QMainWindow):
         ## Startup Functions
         self.set_up_ui()
         self.ui_connections()
-        self.get_channels_path()
         self.populate_side_panel_combo()
 
     def set_up_ui(self):
@@ -92,6 +93,10 @@ class MainApplication(QMainWindow):
         self.timer = QTimer(self)
         self.timer.setInterval(1000)
         self.timer.timeout.connect(self.updateUI)
+
+        self.combo_timer = QTimer(self)
+        self.combo_timer.timeout.connect(self.populate_side_panel_combo)
+        self.combo_timer.start(30000)
 
         ## Set timer shot for moving to next page
         QTimer.singleShot(3000, lambda: self.ui.stackedWidget.setCurrentIndex(1))
@@ -160,11 +165,10 @@ class MainApplication(QMainWindow):
     def increase_playback_speed(self):
 
         current_rate = self.mediaplayer.get_rate()
-        print(current_rate)
 
-        if (current_rate + 0.2) >= 0:
+        if (current_rate + 0.2) >= MAX_PLAY_SPEED:
             self.mediaplayer.pause()
-            self.mediaplayer.set_rate(PLAY_SPEED)
+            self.mediaplayer.set_rate(MAX_PLAY_SPEED)
             self.mediaplayer.play()
         else:
             self.mediaplayer.pause()
@@ -172,7 +176,8 @@ class MainApplication(QMainWindow):
             self.mediaplayer.play()
 
         current_rate = self.mediaplayer.get_rate()
-        self.ui.play_back_speed_label.setText(f"X{current_rate}")
+        self.ui.play_back_speed_label.setText(f"X{current_rate:.02}")
+        print(current_rate)
 
     def normalize_playback_speed(self):
 
@@ -189,11 +194,10 @@ class MainApplication(QMainWindow):
     def decrease_playback_speed(self):
 
         current_rate = self.mediaplayer.get_rate()
-        print(current_rate)
 
-        if (current_rate - 0.2) <= 0:
+        if (current_rate - 0.2) <= MIN_PLAY_SPEED:
             self.mediaplayer.pause()
-            self.mediaplayer.set_rate(PLAY_SPEED)
+            self.mediaplayer.set_rate(MIN_PLAY_SPEED)
             self.mediaplayer.play()
         else:
             self.mediaplayer.pause()
@@ -201,7 +205,8 @@ class MainApplication(QMainWindow):
             self.mediaplayer.play()
 
         current_rate = self.mediaplayer.get_rate()
-        self.ui.play_back_speed_label.setText(f"X{current_rate}")
+        self.ui.play_back_speed_label.setText(f"X{current_rate:.02}")
+        print(current_rate)
 
 
     ## Side panel methods
@@ -250,7 +255,8 @@ class MainApplication(QMainWindow):
             ## Populate the dictionary
             self.all_data[path] = files
 
-        print(json.dumps(self.all_data, indent=2))
+        # print(json.dumps(self.all_data, indent=2))
+        print("Refreshing channel list")
 
         if FIRST_TIME_BOOT:
             self.finished_setup()
@@ -263,11 +269,23 @@ class MainApplication(QMainWindow):
 
     def populate_side_panel_combo(self):
 
+        ## Get New Channels
+        self.get_channels_path()
+
+        ## Block list change signals
+        self.ui.channels_combo.blockSignals(True)
+
+        ## Clear the combo
+        self.ui.channels_combo.clear()
+
         ## Get the keys of the all data dict
         recorded_channels = self.all_data.keys()
 
         ## Populate channels
         self.ui.channels_combo.addItems(recorded_channels)
+
+        ## Enable list change signals
+        self.ui.channels_combo.blockSignals(False)
 
     def populate_side_panel_recordings_slot(self):
 
@@ -330,14 +348,20 @@ class MainApplication(QMainWindow):
         print(seconds_time)
 
         ## Set the times list
+        self.clip_stamps = [0, 0]  # Reset the list
         self.clip_stamps[0] = seconds_time
         print(self.clip_stamps)
+        self.ui.statusbar.showMessage(f"Marked in at {seconds_time}, Times object:: {self.clip_stamps}", 2000)
 
     def mark_out_slot(self):
 
         ## Verify if the player has something playing
         if self.mediaplayer.get_time() == -1:
             self.ui.statusbar.showMessage("Select a valid clip to play before marking in or out", 2000)
+            return
+
+        if self.clip_stamps == [0, 0]:
+            self.ui.statusbar.showMessage("MArk in first", 2000)
             return
 
         ## Get the current time position
@@ -352,7 +376,7 @@ class MainApplication(QMainWindow):
         print(self.clip_stamps)
 
         ## Show message
-        self.ui.statusbar.showMessage("Ready to export", 2000)
+        self.ui.statusbar.showMessage(f"Ready to export, Timer obkects:: {self.clip_stamps}", 2000)
 
     def export_splot(self):
 
@@ -374,6 +398,9 @@ class MainApplication(QMainWindow):
                             )
         ## Add the worker to the threadpool
         self.threadpool.start(worker)
+
+        ## Reset the clips
+        self.clip_stamps = [0, 0]
 
     ## File downloader
     def download_video_cmd(self, stream_url):
@@ -434,7 +461,8 @@ class SplitWorker(QRunnable):
         # command = f"ffmpeg -i \"{videofile_path}\" -ss {clip_stamps[0]} -to {clip_stamps[1]} -c copy -map 0 {clip}.mp4"
         # command = f"ffmpeg {spliter_ffmpeg_ops_string} -ss {clip_stamps[0]} -to {clip_stamps[1]} -i \"{videofile_path}\" -c copy -map 0 {clip}.mp4"
         # command = f"ffmpeg {self.spliter_ffmpeg_ops_string} -ss {self.clip_stamps[0]} -to {self.clip_stamps[1]} -i \"{self.videofile_path}\" {self.clip}.mp4"
-        self.command = f"ffmpeg.exe -y -ss {self.clip_stamps[0]} -to {self.clip_stamps[1]} -i \"{self.videofile_path}\" {self.clip}.mp4"
+        self.command = f"ffmpeg.exe -y -ss {self.clip_stamps[0]} -t {self.clip_stamps[1]} -i \"{self.videofile_path}\" {self.clip}.mp4"
+        # self.command = f"ffmpeg -ss {self.clip_stamps[0]} -i \"{self.videofile_path}\" -c copy -t {self.clip_stamps[1]} {self.clip}.mp4"
 
         print(f"command = {self.command}")
 
