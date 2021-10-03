@@ -21,7 +21,7 @@ import random
 from utils import main_ui
 
 ## Config file
-HOST_IP = "192.168.0.27"
+HOST_IP = "127.0.0.1"
 HOST_PORT = 2151
 
 
