@@ -262,7 +262,7 @@
                </item>
               </layout>
              </widget>
-             <widget class="QWidget" name="">
+             <widget class="QWidget" name="layoutWidget">
               <layout class="QVBoxLayout" name="verticalLayout_5">
                <item>
                 <widget class="QFrame" name="videoframe">
@@ -333,6 +333,22 @@
                         <height>23</height>
                        </size>
                       </property>
+                      <property name="styleSheet">
+                       <string notr="true">QSlider::groove:horizontal {
+    border: 1px solid #d2d519;
+    height: 10px;
+    background: #eee;
+    margin: 0px;
+    border-radius: 4px;
+}
+QSlider::handle:horizontal {
+    background: red;
+    border: 1px solid #565a5e;
+    width: 24px;
+    height: 8px;
+    border-radius: 4px;
+}</string>
+                      </property>
                       <property name="orientation">
                        <enum>Qt::Horizontal</enum>
                       </property>
@@ -364,6 +380,32 @@
                       </property>
                       <property name="text">
                        <string>00:00:00</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="timer_label_3">
+                      <property name="maximumSize">
+                       <size>
+                        <width>70</width>
+                        <height>23</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string>/</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="timer_label_seconds">
+                      <property name="maximumSize">
+                       <size>
+                        <width>70</width>
+                        <height>23</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string>0000</string>
                       </property>
                      </widget>
                     </item>

@@ -109,16 +109,16 @@ class Ui_MainWindow(object):
         item = QtWidgets.QListWidgetItem()
         self.channel_recordings_listwidget.addItem(item)
         self.verticalLayout_8.addWidget(self.channel_recordings_listwidget)
-        self.widget = QtWidgets.QWidget(self.splitter)
-        self.widget.setObjectName("widget")
-        self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.widget)
+        self.layoutWidget = QtWidgets.QWidget(self.splitter)
+        self.layoutWidget.setObjectName("layoutWidget")
+        self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.layoutWidget)
         self.verticalLayout_5.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_5.setObjectName("verticalLayout_5")
-        self.videoframe = QtWidgets.QFrame(self.widget)
+        self.videoframe = QtWidgets.QFrame(self.layoutWidget)
         self.videoframe.setMinimumSize(QtCore.QSize(640, 480))
         self.videoframe.setObjectName("videoframe")
         self.verticalLayout_5.addWidget(self.videoframe)
-        self.frame_5 = QtWidgets.QFrame(self.widget)
+        self.frame_5 = QtWidgets.QFrame(self.layoutWidget)
         self.frame_5.setMinimumSize(QtCore.QSize(0, 100))
         self.frame_5.setMaximumSize(QtCore.QSize(16777215, 100))
         self.frame_5.setStyleSheet("/*background-color: rgb(255, 255, 255);")
@@ -135,6 +135,20 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addItem(spacerItem2)
         self.timer_slider = QtWidgets.QSlider(self.frame_5)
         self.timer_slider.setMaximumSize(QtCore.QSize(16777215, 23))
+        self.timer_slider.setStyleSheet("QSlider::groove:horizontal {\n"
+"    border: 1px solid #d2d519;\n"
+"    height: 10px;\n"
+"    background: #eee;\n"
+"    margin: 0px;\n"
+"    border-radius: 4px;\n"
+"}\n"
+"QSlider::handle:horizontal {\n"
+"    background: red;\n"
+"    border: 1px solid #565a5e;\n"
+"    width: 24px;\n"
+"    height: 8px;\n"
+"    border-radius: 4px;\n"
+"}")
         self.timer_slider.setOrientation(QtCore.Qt.Horizontal)
         self.timer_slider.setObjectName("timer_slider")
         self.horizontalLayout.addWidget(self.timer_slider)
@@ -144,6 +158,14 @@ class Ui_MainWindow(object):
         self.timer_label.setMaximumSize(QtCore.QSize(70, 23))
         self.timer_label.setObjectName("timer_label")
         self.horizontalLayout.addWidget(self.timer_label)
+        self.timer_label_3 = QtWidgets.QLabel(self.frame_5)
+        self.timer_label_3.setMaximumSize(QtCore.QSize(70, 23))
+        self.timer_label_3.setObjectName("timer_label_3")
+        self.horizontalLayout.addWidget(self.timer_label_3)
+        self.timer_label_seconds = QtWidgets.QLabel(self.frame_5)
+        self.timer_label_seconds.setMaximumSize(QtCore.QSize(70, 23))
+        self.timer_label_seconds.setObjectName("timer_label_seconds")
+        self.horizontalLayout.addWidget(self.timer_label_seconds)
         self.verticalLayout_7.addLayout(self.horizontalLayout)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
@@ -263,6 +285,8 @@ class Ui_MainWindow(object):
         item.setText(_translate("MainWindow", "fg425251gh"))
         self.channel_recordings_listwidget.setSortingEnabled(__sortingEnabled)
         self.timer_label.setText(_translate("MainWindow", "00:00:00"))
+        self.timer_label_3.setText(_translate("MainWindow", "/"))
+        self.timer_label_seconds.setText(_translate("MainWindow", "0000"))
         self.play_button.setText(_translate("MainWindow", "Play"))
         self.mark_in_button.setText(_translate("MainWindow", "Mark In"))
         self.mark_out_button.setText(_translate("MainWindow", "Mark Out"))
@@ -275,4 +299,5 @@ class Ui_MainWindow(object):
         self.normalize_playback_speed_button.setText(_translate("MainWindow", "^"))
         self.increase_playback_speed_button.setText(_translate("MainWindow", "->"))
         self.play_back_speed_label.setText(_translate("MainWindow", "X1"))
+
 from . import resources

@@ -27,10 +27,11 @@ HOST_PORT = 2151
 
 ## IN File
 FIRST_TIME_BOOT = True
-INITIAL_PAGE = 0
+INITIAL_PAGE = 1
 SLIDER_RANGE = 30
 PLAY_SPEED = 1
 DESCENDING = True
+# SHOW_SPLASH = False
 
 
 class MainApplication(QMainWindow):
@@ -141,6 +142,7 @@ class MainApplication(QMainWindow):
         """updates the user interface"""
         # setting the slider to the desired position
         self.ui.timer_slider.setValue( (self.mediaplayer.get_position() * 30.0) )
+        print(f"Set timer to {self.mediaplayer.get_media().get_duration()}")
 
         # Set the timer label
         millis = self.mediaplayer.get_time()
@@ -160,10 +162,14 @@ class MainApplication(QMainWindow):
         current_rate = self.mediaplayer.get_rate()
         print(current_rate)
 
-        self.mediaplayer.pause()
-        self.mediaplayer.set_rate( (current_rate + 1.0) )
-        time.sleep(0.25)
-        self.mediaplayer.play()
+        if (current_rate + 0.2) >= 0:
+            self.mediaplayer.pause()
+            self.mediaplayer.set_rate(PLAY_SPEED)
+            self.mediaplayer.play()
+        else:
+            self.mediaplayer.pause()
+            self.mediaplayer.set_rate( (current_rate + 0.2) )
+            self.mediaplayer.play()
 
         current_rate = self.mediaplayer.get_rate()
         self.ui.play_back_speed_label.setText(f"X{current_rate}")
@@ -185,13 +191,13 @@ class MainApplication(QMainWindow):
         current_rate = self.mediaplayer.get_rate()
         print(current_rate)
 
-        if (current_rate - 1) == 0:
+        if (current_rate - 0.2) <= 0:
             self.mediaplayer.pause()
             self.mediaplayer.set_rate(PLAY_SPEED)
             self.mediaplayer.play()
         else:
             self.mediaplayer.pause()
-            self.mediaplayer.set_rate( (current_rate - 1.0) )
+            self.mediaplayer.set_rate( (current_rate - 0.2) )
             self.mediaplayer.play()
 
         current_rate = self.mediaplayer.get_rate()
@@ -357,6 +363,11 @@ class MainApplication(QMainWindow):
         clip = f"{self.media.get_mrl().split('/')[-2]}-{self.media.get_mrl().split('/')[-1]}-{datetime.datetime.now().strftime('%A-%d-%m_%H-%M-%f')}"
         clip_dest = f"C:/Users/{os.getlogin()}/Desktop"
 
+        ## Check that there is a proper clip to clip
+        if not self.clip_stamps:
+            self.ui.statusbar.showMessage(f"Cant export empty clip", 2000)
+            print("Cant export empty clip")
+            return
 
         worker = SplitWorker(
                                 (self.clip_stamps, self.media.get_mrl(), clip, clip_dest, self.ui.statusbar)
@@ -372,7 +383,6 @@ class MainApplication(QMainWindow):
         #### create command
         # command = f"ffmpeg -h"
         command = f"youtube-dl {stream_url}"
-
 
         print(command)
         #### Run the command
