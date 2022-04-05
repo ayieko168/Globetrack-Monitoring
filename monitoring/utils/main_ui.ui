@@ -265,12 +265,12 @@
              <widget class="QWidget" name="layoutWidget">
               <layout class="QVBoxLayout" name="verticalLayout_5">
                <item>
-                <widget class="QFrame" name="videoframe">
-                 <property name="minimumSize">
-                  <size>
-                   <width>640</width>
-                   <height>480</height>
-                  </size>
+                <widget class="QLabel" name="videoframe">
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
                  </property>
                 </widget>
                </item>

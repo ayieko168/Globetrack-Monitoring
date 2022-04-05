@@ -4,7 +4,6 @@ from PyQt5.QtCore import *
 from PyQt5 import QtMultimedia, QtCore
 
 import datetime
-import vlc
 import sys
 import ftplib
 import json
@@ -16,6 +15,9 @@ import urllib.request as request
 from contextlib import closing
 import string
 import random
+import cv2
+from ffpyplayer.player import MediaPlayer
+import numpy as np
 
 
 from utils import main_ui
@@ -45,11 +47,7 @@ class MainApplication(QMainWindow):
         self.ui.setupUi(self)
 
         ## Variables
-        self.instance = vlc.Instance()
-        self.mediaplayer = self.instance.media_player_new()
-        self.isPaused = False
-        self.position = int
-        self.player_volume = 50
+        self.Worker1 = PlayerWorker()
         self.records_dictionary = {}
         self.root_recordings_dir = f"C:/Users/royalstate/Videos/Tv_Recordings/"
         self.all_data = {}
@@ -104,6 +102,7 @@ class MainApplication(QMainWindow):
     def ui_connections(self):
 
         ## Player
+        self.Worker1.ImageUpdate.connect(self.ImageUpdateSlot)
         self.ui.play_button.clicked.connect(self.PlayPause)
         self.ui.increase_playback_speed_button.clicked.connect(self.increase_playback_speed)
         self.ui.normalize_playback_speed_button.clicked.connect(self.normalize_playback_speed)
@@ -121,27 +120,14 @@ class MainApplication(QMainWindow):
         """Toggle play/pause status
         """
 
-        self.mediaplayer.set_rate(PLAY_SPEED)
+        self.Worker1.start()
 
-        if self.mediaplayer.is_playing():
-            self.mediaplayer.pause()
-            self.ui.play_button.setText("Play")
-            self.isPaused = True
-        else:
-            if self.mediaplayer.play() == -1:
-                # self.OpenFile()
-                self.ui.statusbar.showMessage("Select a channel then a clip to play from the side panel.", 2000)
-                return
-            self.mediaplayer.play()
-            self.ui.play_button.setText("Pause")
-            self.timer.start()
-            self.isPaused = False
 
     def Stop(self):
         """Stop player
         """
-        self.mediaplayer.stop()
-        self.ui.play_button.setText("Play")
+
+        pass
 
     def updateUI(self):
         """updates the user interface"""
@@ -162,6 +148,9 @@ class MainApplication(QMainWindow):
                 # this will fix it
                 self.Stop()
 
+    def ImageUpdateSlot(self, Image):
+        self.ui.videoframe.setPixmap(QPixmap.fromImage(Image))
+
     def increase_playback_speed(self):
 
         current_rate = self.mediaplayer.get_rate()
@@ -181,15 +170,7 @@ class MainApplication(QMainWindow):
 
     def normalize_playback_speed(self):
 
-        current_rate = self.mediaplayer.get_rate()
-        print(current_rate)
-
-        self.mediaplayer.pause()
-        self.mediaplayer.set_rate(PLAY_SPEED)
-        self.mediaplayer.play()
-
-        current_rate = self.mediaplayer.get_rate()
-        self.ui.play_back_speed_label.setText(f"X{current_rate}")
+        self.Worker1.stop()
 
     def decrease_playback_speed(self):
 
@@ -313,25 +294,26 @@ class MainApplication(QMainWindow):
         stream_url = f"ftp://{HOST_IP}:{HOST_PORT}/{channel_name}/{selected_file}"
         print(stream_url)
 
+        self.Worker1.set_media(stream_url)
         ## Set created URL as media source for player
         # Pause the player if was playing
-        if self.mediaplayer.is_playing():
-            self.mediaplayer.pause()
-            self.ui.play_button.setText("Play")
-            self.isPaused = True
-
-        self.media = self.instance.media_new(stream_url, '--prefetch-seek-threshold=5000')
-        self.mediaplayer.set_media(self.media)
-        self.media.parse()
-        self.setWindowTitle(f"Ready to play {self.media.get_meta(0)}")
-        self.mediaplayer.set_rate(PLAY_SPEED)
-
-        if sys.platform.startswith('linux'):  # for Linux using the X Server
-            self.mediaplayer.set_xwindow(self.ui.videoframe.winId())
-        elif sys.platform == "win32":  # for Windows
-            self.mediaplayer.set_hwnd(self.ui.videoframe.winId())
-        elif sys.platform == "darwin":  # for MacOS
-            self.mediaplayer.set_nsobject(int(self.ui.videoframe.winId()))
+        # if self.mediaplayer.is_playing():
+        #     self.mediaplayer.pause()
+        #     self.ui.play_button.setText("Play")
+        #     self.isPaused = True
+        #
+        # self.media = self.instance.media_new(stream_url, '--prefetch-seek-threshold=5000')
+        # self.mediaplayer.set_media(self.media)
+        # self.media.parse()
+        # self.setWindowTitle(f"Ready to play {self.media.get_meta(0)}")
+        # self.mediaplayer.set_rate(PLAY_SPEED)
+        #
+        # if sys.platform.startswith('linux'):  # for Linux using the X Server
+        #     self.mediaplayer.set_xwindow(self.ui.videoframe.winId())
+        # elif sys.platform == "win32":  # for Windows
+        #     self.mediaplayer.set_hwnd(self.ui.videoframe.winId())
+        # elif sys.platform == "darwin":  # for MacOS
+        #     self.mediaplayer.set_nsobject(int(self.ui.videoframe.winId()))
 
         # Initialize the player
         self.PlayPause()
@@ -488,9 +470,48 @@ class WorkerSignals(QObject):
     finished = pyqtSignal()
 
 
+class PlayerWorker(QThread):
 
+    ImageUpdate = pyqtSignal(QImage)
 
+    def __init__(self):
 
+        super().__init__()
+
+        self.player = MediaPlayer("ftp://127.0.0.1:2151/KTN/Sat-03-04-2021_09-24PM_304955.avi")
+
+    def run(self):
+
+        self.ThreadActive = True
+        # Capture = cv2.VideoCapture(1)
+        while self.ThreadActive:
+
+            # frame, val = self.player.get_frame()
+            # if val != 'eof' and frame is not None:
+            #     img, t = frame
+            #     w = img.get_size()[0]
+            #     h = img.get_size()[1]
+            #     arr = np.uint8(np.asarray(list(img.to_bytearray()[0])).reshape(h, w, 3)) # h - height of frame, w - width of frame, 3 - number of channels in frame
+
+            # ret, frame = Capture.read()
+            frame, val = self.player.get_frame()
+            if val != 'eof' and frame is not None:
+            # if ret:
+                Image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                FlippedImage = cv2.flip(Image, 1)
+                ConvertToQtFormat = QImage(FlippedImage.data, FlippedImage.shape[1], FlippedImage.shape[0], QImage.Format_RGB888)
+                Pic = ConvertToQtFormat.scaled(640, 480, Qt.KeepAspectRatio)
+                self.ImageUpdate.emit(Pic)
+
+    def stop(self):
+
+        cv2.waitKey(-1)
+        # self.ThreadActive = False
+        # self.quit()
+
+    def set_media(self, media):
+
+        self.player = MediaPlayer(media)
 
 
 

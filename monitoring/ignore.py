@@ -1,51 +1,17 @@
+from ffpyplayer.player import MediaPlayer
+import numpy as np
 import cv2
-import sys
-from PyQt5.QtWidgets import  QWidget, QLabel, QApplication
-from PyQt5.QtCore import QThread, Qt, pyqtSignal, pyqtSlot
-from PyQt5.QtGui import QImage, QPixmap
 
-class Thread(QThread):
-    changePixmap = pyqtSignal(QImage)
-
-    def run(self):
-        cap = cv2.VideoCapture(0)
-        while True:
-            ret, frame = cap.read()
-            if ret:
-                # https://stackoverflow.com/a/55468544/6622587
-                rgbImage = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                h, w, ch = rgbImage.shape
-                bytesPerLine = ch * w
-                convertToQtFormat = QImage(rgbImage.data, w, h, bytesPerLine, QImage.Format_RGB888)
-                p = convertToQtFormat.scaled(640, 480, Qt.KeepAspectRatio)
-                self.changePixmap.emit(p)
-
-
-class App(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.initUI()
-
-    @pyqtSlot(QImage)
-    def setImage(self, image):
-        self.label.setPixmap(QPixmap.fromImage(image))
-
-    def initUI(self):
-        # self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top, self.width, self.height)
-        self.resize(1800, 1200)
-        # create a label
-        self.label = QLabel(self)
-        self.label.move(280, 120)
-        self.label.resize(640, 480)
-        th = Thread(self)
-        th.changePixmap.connect(self.setImage)
-        th.start()
-        self.show()
-
-if __name__ == "__main__":
-
-    w = QApplication([])
-    app = App()
-    app.show()
-    w.exec_()
+player = MediaPlayer("C:/Users/royalstate/Music/Tiny Concerts - 1Xtra,NPR, etc/NPR/Jhené Aiko - Tiny Desk (Home) Concert.mp4")
+val = ''
+while val != 'eof':
+    frame, val = player.get_frame()
+    if val != 'eof' and frame is not None:
+        img, t = frame
+        w = img.get_size()[0]
+        h = img.get_size()[1]
+        arr = np.uint8(np.asarray(list(img.to_bytearray()[0])).reshape(h, w, 3)) # h - height of frame, w - width of frame, 3 - number of channels in frame
+        cv2.imshow('test', arr)
+        if cv2.waitKey(25) & 0xFF == ord('q'):
+            cv2.destroyAllWindows()
+            break

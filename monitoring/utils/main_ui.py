@@ -114,8 +114,9 @@ class Ui_MainWindow(object):
         self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.layoutWidget)
         self.verticalLayout_5.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_5.setObjectName("verticalLayout_5")
-        self.videoframe = QtWidgets.QFrame(self.layoutWidget)
-        self.videoframe.setMinimumSize(QtCore.QSize(640, 480))
+        self.videoframe = QtWidgets.QLabel(self.layoutWidget)
+        self.videoframe.setText("")
+        self.videoframe.setAlignment(QtCore.Qt.AlignCenter)
         self.videoframe.setObjectName("videoframe")
         self.verticalLayout_5.addWidget(self.videoframe)
         self.frame_5 = QtWidgets.QFrame(self.layoutWidget)
@@ -299,5 +300,4 @@ class Ui_MainWindow(object):
         self.normalize_playback_speed_button.setText(_translate("MainWindow", "^"))
         self.increase_playback_speed_button.setText(_translate("MainWindow", "->"))
         self.play_back_speed_label.setText(_translate("MainWindow", "X1"))
-
 from . import resources
