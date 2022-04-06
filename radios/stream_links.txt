@@ -1,0 +1,12 @@
+https://61115b0a477b5.streamlock.net:8443/chamgeifm/chamgeifm/playlist.m3u8
+https://61115b0a477b5.streamlock.net:8443/inoorofm/inoorofm/playlist.m3u8
+https://61115b0a477b5.streamlock.net:8443/mulembefm/mulembefm/playlist.m3u8
+https://61115b0a477b5.streamlock.net:8443/wimwarofm/wimwarofm/playlist.m3u8
+https://61115b0a477b5.streamlock.net:8443/hot96fm/hot96fm/playlist.m3u8
+https://61115b0a477b5.streamlock.net:8443/radiocitizen/radiocitizen/playlist.m3u8
+https://61115b0a477b5.streamlock.net:8443/musyifm/musyifm/playlist.m3u8
+https://61115b0a477b5.streamlock.net:8443/muugafm/muugafm/playlist.m3u8
+https://61115b0a477b5.streamlock.net:8443/egesafm/egesafm/playlist.m3u8
+https://61115b0a477b5.streamlock.net:8443/sulwefm/sulwefm/playlist.m3u8
+https://61115b0a477b5.streamlock.net:8443/ramogifm/ramogifm/playlist.m3u8
+https://61115b0a477b5.streamlock.net:8443/vuukafm/vuukafm/playlist.m3u8
