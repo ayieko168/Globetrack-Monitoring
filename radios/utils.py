@@ -7,6 +7,8 @@ import random
 from datetime import datetime
 import os
 import subprocess
+import logging
+from logging.handlers import RotatingFileHandler
 
 
 def open_rms_links_from_list():
@@ -100,34 +102,77 @@ def record_radio_station(args):
 
     root_dir = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-1])
 
-    ## Recording format and directory
+    ## Recording format and directory and other variables
+    SILENCE_THRESH = '-25dB'  # Threshold volume in dB eg -50dB
+    SILENCE_DURATION = '2'  # Time in seconds
+    TIMEOUT = '15'  # Timout time for internet stream in seconds
     FORMAT = 'MP3'.lower()
+    SEGMENTS_DURATION = 300  # Duration of recorded segments in seconds
     recording_path = f"{root_dir}/RADIO_RECORDINGS/{channel_name}"
 
     if not os.path.exists(recording_path):
         print(f"[{channel_name}] Recording directory not found for {channel_name}, creating one...")
         os.makedirs(recording_path)
 
+    ## Setup the logger
+    log_file = f'{recording_path}/pipe.log'
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    log_formatter = logging.Formatter('%(levelname)s [%(asctime)s] - %(message)s')
+    log_file_handler = RotatingFileHandler(log_file, mode='a', maxBytes=60*1024, backupCount=2, encoding=None, delay=0)
+    log_file_handler.setFormatter(log_formatter)
+    logger.addHandler(log_file_handler)
+
+    logger.info(f"\n\nStarted the stream at {datetime.now()}")
+    logger.info('#'*60)
+    logger.info("Setup info...")
+    logger.info(f'SILENCE_THRESH     = {SILENCE_THRESH}')
+    logger.info(f'SILENCE_DURATION   = {SILENCE_DURATION}')
+    logger.info(f'TIMEOUT            = {TIMEOUT}')
+    logger.info(f'FORMAT             = {FORMAT}')
+    logger.info(f'SEGMENTS_DURATION  = {SEGMENTS_DURATION}')
+    logger.info(f'recording_path     = {recording_path}')
+    logger.info('#'*60)
+
     ## Start recording loop, records in 10 minute intervals
     while True:
         start_time = time.time()
 
         command = f"""ffmpeg -y -i {stream_link} "{recording_path}/{datetime.now().strftime('%a-%d-%b-%Y_%I-%M%p')}.{FORMAT}" """
-        print(command)
+        # command = f"""ffmpeg -y -rw_timeout {TIMEOUT}000000 -i {stream_link} "{recording_path}/{datetime.now().strftime('%a-%d-%b-%Y_%I-%M%p')}.{FORMAT}" """
+        # command = f"""ffmpeg -y -i {stream_link} -af silencedetect=n={SILENCE_THRESH}:d={SILENCE_DURATION} "{recording_path}/{datetime.now().strftime('%a-%d-%b-%Y_%I-%M%p')}.{FORMAT}" """
+        # print(command)
 
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-        for line in process.stdout:
-            print(line)
+        while True:
 
-            if int(time.time() - start_time) > 300:
-                print(f"[{channel_name}] terminating...")
-                process.terminate()
-                record_radio_station((stream_link, channel_name))
+            if process.stdout:
+                line = process.stdout.readline()
+                print(f"[{channel_name}] {line}")
+                logger.info(f"[{channel_name}] {line}")
+
+                if int(time.time() - start_time) > 300:
+                    print(f"[{channel_name}] terminating...")
+                    logger.info(f"[{channel_name}] terminating...")
+                    process.terminate()
+                    record_radio_station((stream_link, channel_name))
+                    break
+
+                if "silencedetect" in line:
+                    print(f"[{channel_name}] The stream has gone silent for more than {SILENCE_DURATION} seconds")
+                    logger.info(f"[{channel_name}] The stream has gone silent for more than {SILENCE_DURATION} seconds")
+
+            if process.stderr:
+                line_er = process.stdout.readline()
+                print(f"[{channel_name}] [ERROR] ==> {line_er}")
+                logger.info(f"[{channel_name}] [ERROR] ==> {line_er}")
 
 
 
 
-record_radio_station(("https://61115b0a477b5.streamlock.net:8443/radiocitizen/radiocitizen/playlist.m3u8", "radio citizen"))
+
+
+# record_radio_station(("https://61115b0a477b5.streamlock.net:8443/hot96fm/hot96fm/playlist.m3u8", "hot 96"))
 
 
 
