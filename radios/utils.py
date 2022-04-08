@@ -115,24 +115,24 @@ def record_radio_station(args):
         os.makedirs(recording_path)
 
     ## Setup the logger
-    log_file = f'{recording_path}/pipe.log'
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
-    log_formatter = logging.Formatter('%(levelname)s [%(asctime)s] - %(message)s')
-    log_file_handler = RotatingFileHandler(log_file, mode='a', maxBytes=60*1024, backupCount=2, encoding=None, delay=0)
-    log_file_handler.setFormatter(log_formatter)
-    logger.addHandler(log_file_handler)
+    # log_file = f'{recording_path}/{channel_name}.log'
+    # logger = logging.getLogger(__name__)
+    # logger.setLevel(logging.DEBUG)
+    # log_formatter = logging.Formatter('%(levelname)s [%(asctime)s] - %(message)s')
+    # log_file_handler = RotatingFileHandler(log_file, mode='a', maxBytes=2048*1024, backupCount=2, encoding=None, delay=0)
+    # log_file_handler.setFormatter(log_formatter)
+    # logger.addHandler(log_file_handler)
 
-    logger.info(f"\n\nStarted the stream at {datetime.now()}")
-    logger.info('#'*60)
-    logger.info("Setup info...")
-    logger.info(f'SILENCE_THRESH     = {SILENCE_THRESH}')
-    logger.info(f'SILENCE_DURATION   = {SILENCE_DURATION}')
-    logger.info(f'TIMEOUT            = {TIMEOUT}')
-    logger.info(f'FORMAT             = {FORMAT}')
-    logger.info(f'SEGMENTS_DURATION  = {SEGMENTS_DURATION}')
-    logger.info(f'recording_path     = {recording_path}')
-    logger.info('#'*60)
+    # logger.info(f"\n\nStarted the stream at {datetime.now()}")
+    # logger.info('#'*60)
+    # logger.info("Setup info...")
+    # logger.info(f'SILENCE_THRESH     = {SILENCE_THRESH}')
+    # logger.info(f'SILENCE_DURATION   = {SILENCE_DURATION}')
+    # logger.info(f'TIMEOUT            = {TIMEOUT}')
+    # logger.info(f'FORMAT             = {FORMAT}')
+    # logger.info(f'SEGMENTS_DURATION  = {SEGMENTS_DURATION}')
+    # logger.info(f'recording_path     = {recording_path}')
+    # logger.info('#'*60)
 
     ## Start recording loop, records in 10 minute intervals
     while True:
@@ -146,26 +146,24 @@ def record_radio_station(args):
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
         while True:
 
-            if process.stdout:
-                line = process.stdout.readline()
+            for line in process.stdout:
                 print(f"[{channel_name}] {line}")
-                logger.info(f"[{channel_name}] {line}")
+                #logger.info(f"[{channel_name}] {line}")
 
                 if int(time.time() - start_time) > 300:
                     print(f"[{channel_name}] terminating...")
-                    logger.info(f"[{channel_name}] terminating...")
+                 #   logger.info(f"[{channel_name}] terminating...")
                     process.terminate()
                     record_radio_station((stream_link, channel_name))
-                    break
+
 
                 if "silencedetect" in line:
                     print(f"[{channel_name}] The stream has gone silent for more than {SILENCE_DURATION} seconds")
-                    logger.info(f"[{channel_name}] The stream has gone silent for more than {SILENCE_DURATION} seconds")
+                  #  logger.info(f"[{channel_name}] The stream has gone silent for more than {SILENCE_DURATION} seconds")
 
-            if process.stderr:
-                line_er = process.stdout.readline()
+            for line_er in process.stdout:
                 print(f"[{channel_name}] [ERROR] ==> {line_er}")
-                logger.info(f"[{channel_name}] [ERROR] ==> {line_er}")
+                #logger.info(f"[{channel_name}] [ERROR] ==> {line_er}")
 
 
 
