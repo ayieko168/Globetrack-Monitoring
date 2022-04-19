@@ -1,4 +1,6 @@
 
+from __future__ import annotations
+
 import webbrowser
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -9,6 +11,9 @@ import os
 import subprocess
 import logging
 from logging.handlers import RotatingFileHandler
+import itertools
+from apscheduler.schedulers.background import BlockingScheduler
+
 
 
 def open_rms_links_from_list():
@@ -144,31 +149,45 @@ def record_radio_station(args):
         # print(command)
 
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
-        while True:
 
-            for line in process.stdout:
-                print(f"[{channel_name}] {line}")
-                #logger.info(f"[{channel_name}] {line}")
+        for i in itertools.count(0, 1):
 
-                if int(time.time() - start_time) > 300:
-                    print(f"[{channel_name}] terminating...")
-                 #   logger.info(f"[{channel_name}] terminating...")
-                    process.terminate()
-                    record_radio_station((stream_link, channel_name))
+            print(process.stdout.read(50), i)
+
+            # time.sleep(0.01)
+            # for line in process.stdout:
+            #     print(f"[{channel_name}] {line}")
+            #     #logger.info(f"[{channel_name}] {line}")
+            #
+            #     if int(time.time() - start_time) > 300:
+            #         print(f"[{channel_name}] terminating...")
+            #      #   logger.info(f"[{channel_name}] terminating...")
+            #         process.terminate()
+            #         record_radio_station((stream_link, channel_name))
+            #
+            #
+            #     if "silencedetect" in line:
+            #         print(f"[{channel_name}] The stream has gone silent for more than {SILENCE_DURATION} seconds")
+            #       #  logger.info(f"[{channel_name}] The stream has gone silent for more than {SILENCE_DURATION} seconds")
+            #
+            # for line_er in process.stdout:
+            #     print(f"[{channel_name}] [ERROR] ==> {line_er}")
+            #     #logger.info(f"[{channel_name}] [ERROR] ==> {line_er}")
 
 
-                if "silencedetect" in line:
-                    print(f"[{channel_name}] The stream has gone silent for more than {SILENCE_DURATION} seconds")
-                  #  logger.info(f"[{channel_name}] The stream has gone silent for more than {SILENCE_DURATION} seconds")
 
-            for line_er in process.stdout:
-                print(f"[{channel_name}] [ERROR] ==> {line_er}")
-                #logger.info(f"[{channel_name}] [ERROR] ==> {line_er}")
+def tick():
+    print('Tick! The time is: %s' % datetime.now())
 
+scheduler = BlockingScheduler(daemon=True)
+# scheduler.add_executor('processpool')
+scheduler.add_job(tick, 'interval', seconds=3)
+print('Press Ctrl+{} to exit'.format('Break' if os.name == 'nt' else 'C'))
 
-
-
-
+try:
+    scheduler.start()
+except (KeyboardInterrupt, SystemExit):
+    pass
 
 # record_radio_station(("https://61115b0a477b5.streamlock.net:8443/hot96fm/hot96fm/playlist.m3u8", "hot 96"))
 
