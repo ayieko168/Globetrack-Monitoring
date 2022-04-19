@@ -30,7 +30,21 @@ def main():
     """)
 
     select_station = st.selectbox('Pick a station...', get_available_stations())
-    print(select_station)
+
+    radios_dir = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-1])
+    recordings = os.listdir(f"{radios_dir}/RADIO_RECORDINGS/{select_station.upper().replace(' ', '_')}")
+
+    with st.expander(f"Open to see recordings from {select_station}"):
+        for i, recording in enumerate(recordings):
+            col_name, col_size, col_open = st.columns((2, 1, 1))
+
+            col_name.write(recording)
+            col_size.write("X Kb")
+            col_open.button(label="Open", key=recording)
+        
+        print(select_station)
+
+    
 
 
 def get_available_stations():
@@ -39,8 +53,6 @@ def get_available_stations():
     stations = [x.replace('_', ' ').title() for x in os.listdir(f"{radios_dir}/RADIO_RECORDINGS")]
 
     return stations
-
-
 
 
 

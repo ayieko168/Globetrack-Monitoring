@@ -2,11 +2,13 @@
 from __future__ import annotations
 
 import webbrowser
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-import time
-import random
+#from selenium import webdriver
+#from selenium.webdriver.common.by import By
+import time, sys
+import schedule
+import random, threading
 from datetime import datetime
+from datetime import timedelta
 import os
 import subprocess
 import logging
@@ -112,67 +114,81 @@ def record_radio_station(args):
     SILENCE_DURATION = '2'  # Time in seconds
     TIMEOUT = '15'  # Timout time for internet stream in seconds
     FORMAT = 'MP3'.lower()
-    SEGMENTS_DURATION = 300  # Duration of recorded segments in seconds
+    SEGMENTS_DURATION = 600  # Duration of recorded segments in seconds
     recording_path = f"{root_dir}/RADIO_RECORDINGS/{channel_name}"
 
     if not os.path.exists(recording_path):
         print(f"[{channel_name}] Recording directory not found for {channel_name}, creating one...")
         os.makedirs(recording_path)
 
-    ## Setup the logger
-    # log_file = f'{recording_path}/{channel_name}.log'
-    # logger = logging.getLogger(__name__)
-    # logger.setLevel(logging.DEBUG)
-    # log_formatter = logging.Formatter('%(levelname)s [%(asctime)s] - %(message)s')
-    # log_file_handler = RotatingFileHandler(log_file, mode='a', maxBytes=2048*1024, backupCount=2, encoding=None, delay=0)
-    # log_file_handler.setFormatter(log_formatter)
-    # logger.addHandler(log_file_handler)
 
-    # logger.info(f"\n\nStarted the stream at {datetime.now()}")
-    # logger.info('#'*60)
-    # logger.info("Setup info...")
-    # logger.info(f'SILENCE_THRESH     = {SILENCE_THRESH}')
-    # logger.info(f'SILENCE_DURATION   = {SILENCE_DURATION}')
-    # logger.info(f'TIMEOUT            = {TIMEOUT}')
-    # logger.info(f'FORMAT             = {FORMAT}')
-    # logger.info(f'SEGMENTS_DURATION  = {SEGMENTS_DURATION}')
-    # logger.info(f'recording_path     = {recording_path}')
-    # logger.info('#'*60)
+    start_time = time.time()
 
-    ## Start recording loop, records in 10 minute intervals
+    command = f"""ffmpeg -y -i {stream_link} "{recording_path}/{datetime.now().strftime('%a-%d-%b-%Y_%I-%M%p')}.{FORMAT}" """
+    # command = f"""ffmpeg -y -i {stream_link} "{recording_path}/{datetime.now().strftime('%a-%d-%b-%Y_%I-%M%p')}.{FORMAT}" > radios.log"""
+    # command = f"""ffmpeg -y -rw_timeout {TIMEOUT}000000 -i {stream_link} "{recording_path}/{datetime.now().strftime('%a-%d-%b-%Y_%I-%M%p')}.{FORMAT}" """
+    # command = f"""ffmpeg -y -i {stream_link} -af silencedetect=n={SILENCE_THRESH}:d={SILENCE_DURATION} "{recording_path}/{datetime.now().strftime('%a-%d-%b-%Y_%I-%M%p')}.{FORMAT}" """
+    # print(command)
+
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+
+    now = datetime.now()
+    run_at = now + timedelta(minutes=5)
+    delay = (run_at - now).total_seconds()
+    print(f"Setting up scheduler... Will trigger at {run_at}")
+    threading.Timer(delay, lambda: restart_stream(process, stream_link, channel_name)).start()
+    
     while True:
-        start_time = time.time()
 
-        command = f"""ffmpeg -y -i {stream_link} "{recording_path}/{datetime.now().strftime('%a-%d-%b-%Y_%I-%M%p')}.{FORMAT}" """
-        # command = f"""ffmpeg -y -rw_timeout {TIMEOUT}000000 -i {stream_link} "{recording_path}/{datetime.now().strftime('%a-%d-%b-%Y_%I-%M%p')}.{FORMAT}" """
-        # command = f"""ffmpeg -y -i {stream_link} -af silencedetect=n={SILENCE_THRESH}:d={SILENCE_DURATION} "{recording_path}/{datetime.now().strftime('%a-%d-%b-%Y_%I-%M%p')}.{FORMAT}" """
-        # print(command)
+        for line in process.stdout:
+            print(f"[{channel_name}] {line}")
+            #logger.info(f"[{channel_name}] {line}")
 
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+            #if int(time.time() - start_time) > 300:
+            #    print(f"[{channel_name}] terminating...")
+            # #   logger.info(f"[{channel_name}] terminating...")
+            #    process.terminate()
+            #    record_radio_station((stream_link, channel_name))
 
-        for i in itertools.count(0, 1):
 
-            print(process.stdout.read(50), i)
+            #if "silencedetect" in line:
+            #    print(f"[{channel_name}] The stream has gone silent for more than {SILENCE_DURATION} seconds")
+            #  #  logger.info(f"[{channel_name}] The stream has gone silent for more than {SILENCE_DURATION} seconds")
 
-            # time.sleep(0.01)
-            # for line in process.stdout:
-            #     print(f"[{channel_name}] {line}")
-            #     #logger.info(f"[{channel_name}] {line}")
-            #
-            #     if int(time.time() - start_time) > 300:
-            #         print(f"[{channel_name}] terminating...")
-            #      #   logger.info(f"[{channel_name}] terminating...")
-            #         process.terminate()
-            #         record_radio_station((stream_link, channel_name))
-            #
-            #
-            #     if "silencedetect" in line:
-            #         print(f"[{channel_name}] The stream has gone silent for more than {SILENCE_DURATION} seconds")
-            #       #  logger.info(f"[{channel_name}] The stream has gone silent for more than {SILENCE_DURATION} seconds")
-            #
-            # for line_er in process.stdout:
-            #     print(f"[{channel_name}] [ERROR] ==> {line_er}")
-            #     #logger.info(f"[{channel_name}] [ERROR] ==> {line_er}")
+        for line_er in process.stdout:
+            print(f"[{channel_name}] [ERROR] ==> {line_er}")
+            #logger.info(f"[{channel_name}] [ERROR] ==> {line_er}")
+
+
+def restart_stream(process, stream_link, channel_name):
+    print(f"[{channel_name}] terminating...")
+    process.terminate()
+    record_radio_station((stream_link, channel_name))
+
+
+    for i in itertools.count(0, 1):
+
+        print(process.stdout.read(50), i)
+
+        # time.sleep(0.01)
+        # for line in process.stdout:
+        #     print(f"[{channel_name}] {line}")
+        #     #logger.info(f"[{channel_name}] {line}")
+        #
+        #     if int(time.time() - start_time) > 300:
+        #         print(f"[{channel_name}] terminating...")
+        #      #   logger.info(f"[{channel_name}] terminating...")
+        #         process.terminate()
+        #         record_radio_station((stream_link, channel_name))
+        #
+        #
+        #     if "silencedetect" in line:
+        #         print(f"[{channel_name}] The stream has gone silent for more than {SILENCE_DURATION} seconds")
+        #       #  logger.info(f"[{channel_name}] The stream has gone silent for more than {SILENCE_DURATION} seconds")
+        #
+        # for line_er in process.stdout:
+        #     print(f"[{channel_name}] [ERROR] ==> {line_er}")
+        #     #logger.info(f"[{channel_name}] [ERROR] ==> {line_er}")
 
 
 
@@ -189,7 +205,7 @@ try:
 except (KeyboardInterrupt, SystemExit):
     pass
 
-# record_radio_station(("https://61115b0a477b5.streamlock.net:8443/hot96fm/hot96fm/playlist.m3u8", "hot 96"))
+#record_radio_station(("https://61115b0a477b5.streamlock.net:8443/hot96fm/hot96fm/playlist.m3u8", "hot 96"))
 
 
 

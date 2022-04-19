@@ -19,7 +19,7 @@ if __name__ == '__main__':
         ("https://61115b0a477b5.streamlock.net:8443/vuukafm/vuukafm/playlist.m3u8", "vuuka fm")
     ]
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=25) as excecutor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=15) as excecutor:
         excecutor.map(record_radio_station, radios_list)
 
 
