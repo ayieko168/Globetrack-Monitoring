@@ -118,13 +118,13 @@ def get_audio_devices():
 
 
 
-get_video_devices()
+#get_video_devices()
 get_audio_devices()
 # capture_video("Logitech Webcam C925e", "Microphone (Logitech Webcam C925e)", "ktn")
 
-channels_list = [(r"@device_pnp_\\?\usb#vid_046d&pid_085b&mi_00#7&3278cd7d&0&0000#{65e8773d-8f56-11d0-a3b9-00a0c9223196}\global", r"@device_cm_{33D9A762-90C8-11D0-BD43-00A0C911CE86}\wave_{4798DD41-F690-495B-B568-3D25EBC51ACD}", "Maisha magic east"),
-                 ]
+#channels_list = [(r"@device_pnp_\\?\usb#vid_046d&pid_085b&mi_00#7&3278cd7d&0&0000#{65e8773d-8f56-11d0-a3b9-00a0c9223196}\global", r"@device_cm_{33D9A762-90C8-11D0-BD43-00A0C911CE86}\wave_{4798DD41-F690-495B-B568-3D25EBC51ACD}", "Maisha magic east"),
+#                 ]
 
-with concurrent.futures.ThreadPoolExecutor(max_workers=25) as excecutor:
-    excecutor.map(capture_video, channels_list)
+#with concurrent.futures.ThreadPoolExecutor(max_workers=25) as excecutor:
+#    excecutor.map(capture_video, channels_list)
 
